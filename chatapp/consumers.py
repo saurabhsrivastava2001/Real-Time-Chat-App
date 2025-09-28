@@ -37,6 +37,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'room': room
             }
         )
+        await self.save_message(username, room, message)
     async def chat_message(self, event):
         message= event['message']
         username= event['username']
@@ -49,3 +50,13 @@ class ChatConsumer(AsyncWebsocketConsumer):
         }))
 
     
+    # funciton to save message to database
+    @sync_to_async
+    def save_message(self, username, room, message):
+        from .models import ChatMessage, ChatRoom
+        from django.contrib.auth.models import User
+
+        user= User.objects.get(username=username)
+        room= ChatRoom.objects.get(slug=room)
+
+        ChatMessage.objects.create(user=user, room=room, message=message)
